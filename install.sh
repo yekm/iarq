@@ -58,7 +58,7 @@ pacstrap /mnt --noconfirm base base-devel git zsh vim grub openssh $ap
 #cp -v {,/mnt}/etc/pacman.d/mirrorlist #pacstrap does this
 
 genfstab -L -p /mnt > /mnt/etc/fstab
-echo 'en_US.UTF-8' > /mnt/etc/locale.gen
+echo 'en_US.UTF-8 UTF-8' > /mnt/etc/locale.gen
 echo LANG=en_US.UTF-8 > /mnt/etc/locale.conf
 #echo KEYMAP=de-latin1-nodeadkeys >> /mnt/etc/vconsole.conf
 #echo FONT=Lat2-Terminus16 >> /mnt/etc/vconsole.conf
