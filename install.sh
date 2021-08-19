@@ -1,5 +1,6 @@
 #!/bin/bash -xe
 # ap="cgdb cmake mc" hn=archdev bash -xe install.sh
+# cgdb cmake mc xorg xorg-apps rxvt-unicode xdm-archlinux
 
 trap 'umount -R /mnt' INT TERM EXIT
 
@@ -15,42 +16,9 @@ sleep 3
 [ -z "$hn" ] && read hn
 [ -z "$hn" ] && fail no hostname
 
-disk=$(ls -1 /dev/vd? /dev/nvme?n? /dev/sd? /dev/hd? | head -n1)
-#[ -z "$disk" ] && read disk
-[ -z "$disk" ] && fail no disk
+# assume /mnt is ok.
+# TODO: move to sytemd-network and systemd-boot with efi
 
-#[ -z "$ap" ] && read ap # additional packages (better with environment variables)
-
-#loadkeys
-#setfont
-
-fdisk $disk <<EOF || true
-o #create new partition table
-n # create 128M of swap
-p #primary
-1
-
-+128M
-t
-82
-n # rest is for root
-p # primary
-2
-
-
-p # print
-w #write changes
-EOF
-
-partprobe $disk
-
-d1=${disk}1
-d2=${disk}2
-
-mkswap -L swap $d1
-mkfs.ext4 -L root $d2 # -F -F
-#swapon $d1
-mount $d2 /mnt -o data=writeback,relatime
 
 sed -i '1s;^;Server = http://mirror.yandex.ru/archlinux/$repo/os/$arch\n;' /etc/pacman.d/mirrorlist
 #pacman -Syy #??
