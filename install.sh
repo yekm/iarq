@@ -15,46 +15,14 @@ sleep 3
 [ -z "$hn" ] && read hn
 [ -z "$hn" ] && fail no hostname
 
-disk=$(ls -1 /dev/vd? /dev/nvme?n? /dev/sd? /dev/hd? | head -n1)
-#[ -z "$disk" ] && read disk
-[ -z "$disk" ] && fail no disk
-
 #[ -z "$ap" ] && read ap # additional packages (better with environment variables)
 
 #loadkeys
 #setfont
 
-fdisk $disk <<EOF || true
-o #create new partition table
-n # create 128M of swap
-p #primary
-1
-
-+128M
-t
-82
-n # rest is for root
-p # primary
-2
-
-
-p # print
-w #write changes
-EOF
-
-partprobe $disk
-
-d1=${disk}1
-d2=${disk}2
-
-mkswap -L swap $d1
-mkfs.ext4 -L root $d2 # -F -F
-#swapon $d1
-mount $d2 /mnt -o data=writeback,relatime
-
 sed -i '1s;^;Server = http://mirror.yandex.ru/archlinux/$repo/os/$arch\n;' /etc/pacman.d/mirrorlist
 #pacman -Syy #??
-pacstrap /mnt --noconfirm base base-devel git zsh vim grub openssh $ap
+pacstrap /mnt --noconfirm linux base base-devel git vim openssh intel-ucode rxvt-unicode-terminfo $ap
 #cp -v {,/mnt}/etc/pacman.d/mirrorlist #pacstrap does this
 
 genfstab -L -p /mnt > /mnt/etc/fstab
@@ -70,16 +38,28 @@ arch-chroot /mnt pacman -Syyu
 arch-chroot /mnt timedatectl set-ntp true
 arch-chroot /mnt systemctl enable dhcpcd
 arch-chroot /mnt systemctl enable sshd
-arch-chroot /mnt grub-install --target=i386-pc --recheck $disk
-arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+arch-chroot /mnt bootctl install
 arch-chroot /mnt passwd
-#sed -i 's/^#\? \?PermitRootLogin .*/PermitRootLogin yes/' /mnt/etc/ssh/sshd_config
+sed -i 's/^#\? \?PermitRootLogin .*/PermitRootLogin prohibit-password/' /mnt/etc/ssh/sshd_config
+
 mkdir -p /mnt/root/.ssh
 cat >/mnt/root/.ssh/authorized_keys <<EOF
 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKlyu1QiAIIm4YyvutTMPBale6C0TAPMfZEax2GRK5ec/tZLyLz4PNzrH6G4+VUyCzrZvxM0VzlLax0rTnIjE0Y=
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDALePn5CnF7o3N6UgmXNq1OYeen5gS6KX5DCMp+Zo3TR0HXT8+R1iyCXRlEG989ZY3af4smxPkxL6Eh6acey9TreirCWVHxvMUkmBZpZnpDEsxZhhplsRmMZbaGb9d7xVgjjiQLwNu0W2Kn2x68KwBWHWMXQuLX7k3Lx0UilNu1LyQrbxzJXFwt2yfUwy+cgkRZuM6nOe4V0Md6WGSr9ZTSQCwCFBv5YLuIg4UotAjIX39vjA0yWu6YbAPaQerqQZaG9NVHn0G6f7CXTbwOW89g65sNc5jKgfjehoN2FJDQkm0FJa6YkyYEtzXlyBLbIqNOP1Jx69j+BFXN27010Vt
 EOF
-umount -R /mnt
-read yolo
-[ -z "$yolo" ] && reboot
+
+cat >/mnt/boot/loader/entries/arch.conf <<EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /intel-ucode.img
+initrd  /initramfs-linux.img
+options root=/dev/disk/by-id/XXXXX rw zswap.enabled=1 zswap.zpool=z3fold sysrq_always_enabled=1 threadirqs clocksource=hpet
+EOF
+ls -la /dev/disk/by-id/ | grep "../../$(basename $(mount | grep /mnt/boot | cut -f1 -d' '))"
+
+echo vim /mnt/boot/loader/entries/arch.conf
+
+#umount -R /mnt
+#read yolo
+#[ -z "$yolo" ] && reboot
 
