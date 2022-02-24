@@ -51,11 +51,11 @@ EOF
 cat >/mnt/boot/loader/entries/arch.conf <<EOF
 title   Arch Linux
 linux   /vmlinuz-linux
-initrd  /intel-ucode.img
 initrd  /initramfs-linux.img
-options root=/dev/disk/by-id/XXXXX rw zswap.enabled=1 zswap.zpool=z3fold sysrq_always_enabled=1 threadirqs clocksource=hpet
+options root=/dev/vda2 rw
 EOF
-ls -la /dev/disk/by-id/ | grep "../../$(basename $(mount | grep /mnt/boot | cut -f1 -d' '))"
+#options root=/dev/disk/by-id/XXXXX rw zswap.enabled=1 zswap.zpool=z3fold sysrq_always_enabled=1 threadirqs clocksource=hpet
+#ls -la /dev/disk/by-id/ | grep "../../$(basename $(mount | grep /mnt/ | cut -f1 -d' '))"
 
 echo vim /mnt/boot/loader/entries/arch.conf
 
