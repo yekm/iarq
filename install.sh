@@ -38,6 +38,8 @@ arch-chroot /mnt pacman -Syyu
 arch-chroot /mnt timedatectl set-ntp true
 arch-chroot /mnt systemctl enable dhcpcd
 arch-chroot /mnt systemctl enable sshd
+arch-chroot /mnt systemctl enable systemd-networkd
+arch-chroot /mnt systemctl enable systemd-resolved
 arch-chroot /mnt bootctl install
 arch-chroot /mnt passwd
 sed -i 's/^#\? \?PermitRootLogin .*/PermitRootLogin prohibit-password/' /mnt/etc/ssh/sshd_config
@@ -46,6 +48,14 @@ mkdir -p /mnt/root/.ssh
 cat >/mnt/root/.ssh/authorized_keys <<EOF
 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKlyu1QiAIIm4YyvutTMPBale6C0TAPMfZEax2GRK5ec/tZLyLz4PNzrH6G4+VUyCzrZvxM0VzlLax0rTnIjE0Y=
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDALePn5CnF7o3N6UgmXNq1OYeen5gS6KX5DCMp+Zo3TR0HXT8+R1iyCXRlEG989ZY3af4smxPkxL6Eh6acey9TreirCWVHxvMUkmBZpZnpDEsxZhhplsRmMZbaGb9d7xVgjjiQLwNu0W2Kn2x68KwBWHWMXQuLX7k3Lx0UilNu1LyQrbxzJXFwt2yfUwy+cgkRZuM6nOe4V0Md6WGSr9ZTSQCwCFBv5YLuIg4UotAjIX39vjA0yWu6YbAPaQerqQZaG9NVHn0G6f7CXTbwOW89g65sNc5jKgfjehoN2FJDQkm0FJa6YkyYEtzXlyBLbIqNOP1Jx69j+BFXN27010Vt
+EOF
+
+cat >/etc/systemd/network/20-wired.network <<EOF
+[Match]
+Name=enp1s0
+
+[Network]
+DHCP=yes
 EOF
 
 cat >/mnt/boot/loader/entries/arch.conf <<EOF
