@@ -22,7 +22,7 @@ sleep 3
 
 sed -i '1s;^;Server = http://mirror.yandex.ru/archlinux/$repo/os/$arch\n;' /etc/pacman.d/mirrorlist
 #pacman -Syy #??
-pacstrap /mnt --noconfirm linux base base-devel git vim openssh intel-ucode rxvt-unicode-terminfo $ap
+pacstrap /mnt --noconfirm linux base linux linux-firmware base-devel git vim openssh intel-ucode rxvt-unicode-terminfo $ap
 #cp -v {,/mnt}/etc/pacman.d/mirrorlist #pacstrap does this
 
 genfstab -L -p /mnt > /mnt/etc/fstab
@@ -58,6 +58,7 @@ Name=enp1s0
 DHCP=yes
 EOF
 
+mkdir -p /mnt/boot/loader/entries
 cat >/mnt/boot/loader/entries/arch.conf <<EOF
 title   Arch Linux
 linux   /vmlinuz-linux
